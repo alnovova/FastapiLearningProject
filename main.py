@@ -11,7 +11,10 @@ hotels = [
 ]
 
 
-@app.get("/hotels")
+@app.get(
+    "/hotels",
+    summary="Получение отелей"
+)
 def get_hotels(
         id: int | None = Query(None, description="Идентификатор"),
         title: str | None = Query(None, description="Название отеля"),
@@ -27,14 +30,20 @@ def get_hotels(
     return hotels_
 
 
-@app.delete("/hotels/{hotel_id}")
+@app.delete(
+    "/hotels/{hotel_id}",
+    summary="Удаление отеля"
+)
 def delete_hotel(hotel_id: int):
     global hotels
     hotels = [hotel for hotel in hotels if hotel["id"] != hotel_id]
     return {"status": "OK"}
 
 
-@app.post("/hotels")
+@app.post(
+    "/hotels",
+    summary="Добавление отеля"
+)
 def create_hotel(
         title: str = Body(embed=True),   # embed=True обязательно прописывать, если параметр всего один
         name: str = Body(embed=True)
@@ -48,34 +57,40 @@ def create_hotel(
     return {"status": "OK"}
 
 
-@app.put("/hotels/{hotel_id}")
+@app.put(
+    "/hotels/{hotel_id}",
+    summary="Изменение отеля"
+)
 def update_hotel(
         hotel_id: int,
         title: str = Body(embed=True),
         name: str = Body(embed=True)
 ):
     global hotels
-    for i, hotel in enumerate(hotels):
+    for hotel in hotels:
         if hotel["id"] == hotel_id:
-            hotels[i]["title"] = title
-            hotels[i]["name"] = name
+            hotel["title"] = title
+            hotel["name"] = name
             return {"status": "OK"}
         return {"status": "ERROR", "message": "Элемент не найден"}
 
 
-@app.patch("/hotels/{hotel_id}")
-def patch_hotel(
+@app.patch(
+    "/hotels/{hotel_id}",
+    summary="Частичное изменения отеля"
+)
+def partially_update_hotel(
         hotel_id: int,
         title: str | None = Body(None, embed=True),
         name: str | None = Body(None, embed=True)
 ):
     global hotels
-    for i, hotel in enumerate(hotels):
+    for hotel in hotels:
         if hotel["id"] == hotel_id:
             if title is not None:
-                hotels[i]["title"] = title
+                hotel["title"] = title
             if name is not None:
-                hotels[i]["name"] = name
+                hotel["name"] = name
             return {"status": "OK"}
         return {"status": "ERROR", "message": "Элемент не найден"}
 
