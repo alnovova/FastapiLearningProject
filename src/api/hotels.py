@@ -5,6 +5,7 @@ from sqlalchemy import insert, select
 from src.api.dependencies import PaginationDep
 from src.database import async_session_maker
 from src.models.hotels import HotelsORM
+from src.repositories.hotels import HotelsRepository
 from src.schemas.hotels import Hotel, HotelPATCH
 
 
@@ -31,19 +32,14 @@ async def get_hotels(
         location: str | None = Query(None, description="Адрес")
 ):
     per_page = pagination.per_page or 5
-
     async with async_session_maker() as session:
-        query = select(HotelsORM)
-        if title:
-            query = query.filter(HotelsORM.title.ilike(f"%{title}%"))
-        if location:
-            query = query.filter(HotelsORM.location.ilike(f"%{location}%"))
-        query = query.limit(per_page).offset(per_page * (pagination.page - 1))
-        result = await session.execute(query)
+        return await HotelsRepository(session).get_all(
+            title=title,
+            location=location,
+            limit=per_page,
+            offset=per_page * (pagination.page - 1)
+        )
 
-        hotels = result.scalars().all()
-
-        return hotels
 
 
 @router.delete(
