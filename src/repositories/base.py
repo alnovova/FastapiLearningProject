@@ -1,4 +1,4 @@
-from sqlalchemy import select
+from sqlalchemy import select, insert
 
 
 class BaseRepository:
@@ -22,3 +22,9 @@ class BaseRepository:
         result = await self.session.execute(query)
 
         return result.scalars().one_or_none()
+
+    async def add(self, data):
+        stmt = insert(self.model).values(**data.model_dump()).returning(*self.model.__table__.columns)
+        result = await self.session.execute(stmt)
+        row = result.fetchone()
+        return dict(row._mapping) if row else None
