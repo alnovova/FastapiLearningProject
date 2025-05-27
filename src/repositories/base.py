@@ -1,3 +1,4 @@
+from pydantic import BaseModel
 from sqlalchemy import select, insert
 
 
@@ -23,8 +24,7 @@ class BaseRepository:
 
         return result.scalars().one_or_none()
 
-    async def add(self, data):
-        stmt = insert(self.model).values(**data.model_dump()).returning(*self.model.__table__.columns)
+    async def add(self, data: BaseModel):
+        stmt = insert(self.model).values(**data.model_dump()).returning(self.model)
         result = await self.session.execute(stmt)
-        row = result.fetchone()
-        return dict(row._mapping) if row else None
+        return result.scalars().one()
