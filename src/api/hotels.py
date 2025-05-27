@@ -1,26 +1,13 @@
 from fastapi import Query, APIRouter, Body
 
-from sqlalchemy import insert, select
-
 from src.api.dependencies import PaginationDep
 from src.database import async_session_maker
-from src.models.hotels import HotelsORM
 from src.repositories.hotels import HotelsRepository
 from src.schemas.hotels import Hotel, HotelPATCH
 
 
 router = APIRouter(prefix="/hotels", tags=["Отели"])
 
-
-hotels = [
-    {"id": 1, "title": "Сочи", "name": "sochi"},
-    {"id": 2, "title": "Дубай", "name": "dubai"},
-    {"id": 3, "title": "Париж", "name": "paris"},
-    {"id": 4, "title": "Нью Йорк", "name": "new_york"},
-    {"id": 5, "title": "Токио", "name": "tokyo"},
-    {"id": 6, "title": "Барселона", "name": "barcelona"},
-    {"id": 7, "title": "Сидней", "name": "sydney"},
-]
 
 @router.get(
     "",
@@ -39,7 +26,6 @@ async def get_hotels(
             limit=per_page,
             offset=per_page * (pagination.page - 1)
         )
-
 
 
 @router.delete(
@@ -79,7 +65,7 @@ async def create_hotel(hotel_data: Hotel = Body(openapi_examples={
     "/{hotel_id}",
     summary="Изменение отеля"
 )
-async def update_hotel(hotel_id: int, hotel_data: Hotel):
+async def edit_hotel(hotel_id: int, hotel_data: Hotel):
     async with async_session_maker() as session:
         await HotelsRepository(session).edit(data=hotel_data, id=hotel_id)
         await session.commit()
@@ -91,13 +77,9 @@ async def update_hotel(hotel_id: int, hotel_data: Hotel):
     "/{hotel_id}",
     summary="Частичное изменения отеля"
 )
-def partially_update_hotel(hotel_id: int, hotel_data: HotelPATCH):
-    global hotels
-    for hotel in hotels:
-        if hotel["id"] == hotel_id:
-            if hotel_data.title is not None:
-                hotel["title"] = hotel_data.title
-            if hotel_data.name is not None:
-                hotel["name"] = hotel_data.name
-            return {"status": "OK"}
-        return {"status": "ERROR", "message": "Элемент не найден"}
+async def partially_edit_hotel(hotel_id: int, hotel_data: HotelPATCH):
+    async with async_session_maker() as session:
+        await HotelsRepository(session).edit(data=hotel_data, exclude_unset=True, id=hotel_id)
+        await session.commit()
+
+    return {"status": "OK"}
