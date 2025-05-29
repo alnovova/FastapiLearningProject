@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Response
+from fastapi import APIRouter, HTTPException, Response, Request
 from sqlalchemy.exc import IntegrityError
 
 from src.database import async_session_maker
@@ -34,3 +34,11 @@ async def login_user(data: UserRequestAdd, response: Response):
         access_token = AuthService().create_access_token({"user_id": user.id})
         response.set_cookie("access_token", access_token)
         return {"access_token": access_token}
+
+
+@router.get("only_auth")
+async def only_auth(request: Request):
+    access_token = request.cookies.get("access_token")
+    if not access_token:
+        raise HTTPException(status_code=401, detail="Пользователь не аутентифицирован")
+    return {"access_token": access_token}
