@@ -3,7 +3,7 @@ from fastapi import Query, APIRouter, Body
 from src.api.dependencies import PaginationDep
 from src.database import async_session_maker
 from src.repositories.hotels import HotelsRepository
-from src.schemas.hotels import Hotel, HotelPATCH, HotelAdd
+from src.schemas.hotels import HotelPatch, HotelAdd
 
 router = APIRouter(prefix="/hotels", tags=["Отели"])
 
@@ -34,19 +34,6 @@ async def get_hotels(
 async def get_hotel(hotel_id: int):
     async with async_session_maker() as session:
         return await HotelsRepository(session).get_one_or_none(id=hotel_id)
-
-
-
-@router.delete(
-    "/{hotel_id}",
-    summary="Удаление отеля"
-)
-async def delete_hotel(hotel_id: int):
-    async with async_session_maker() as session:
-        await HotelsRepository(session).delete(id=hotel_id)
-        await session.commit()
-
-    return {"status": "OK"}
 
 
 @router.post(
@@ -86,9 +73,21 @@ async def edit_hotel(hotel_id: int, hotel_data: HotelAdd):
     "/{hotel_id}",
     summary="Частичное изменения отеля"
 )
-async def partially_edit_hotel(hotel_id: int, hotel_data: HotelPATCH):
+async def partially_edit_hotel(hotel_id: int, hotel_data: HotelPatch):
     async with async_session_maker() as session:
         await HotelsRepository(session).edit(data=hotel_data, exclude_unset=True, id=hotel_id)
+        await session.commit()
+
+    return {"status": "OK"}
+
+
+@router.delete(
+    "/{hotel_id}",
+    summary="Удаление отеля"
+)
+async def delete_hotel(hotel_id: int):
+    async with async_session_maker() as session:
+        await HotelsRepository(session).delete(id=hotel_id)
         await session.commit()
 
     return {"status": "OK"}
