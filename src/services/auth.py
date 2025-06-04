@@ -2,15 +2,14 @@ from datetime import datetime, timezone, timedelta
 from fastapi import HTTPException
 
 import jwt
+from jwt import ExpiredSignatureError
 from passlib.context import CryptContext
 
 from src.config import settings
 
 
 class AuthService:
-
     pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
 
     def create_access_token(self, data: dict) -> str:
         to_encode = data.copy()
@@ -19,17 +18,16 @@ class AuthService:
         encoded_jwt = jwt.encode(to_encode, settings.JWT_SECRET_KEY, algorithm=settings.JWT_ALGORITHM)
         return encoded_jwt
 
-
     def encode_token(self, token: str) -> dict:
         try:
             return jwt.decode(token, settings.JWT_SECRET_KEY, algorithms=[settings.JWT_ALGORITHM])
         except jwt.exceptions.DecodeError:
             raise HTTPException(status_code=401, detail="Неверный токен")
-
+        except ExpiredSignatureError:
+            raise HTTPException(status_code=401, detail="Срок действия токена истек")
 
     def hash_password(self, password: str) -> str:
         return self.pwd_context.hash(password)
-
 
     def verify_password(self, plain_password, hashed_password):
         return self.pwd_context.verify(plain_password, hashed_password)
