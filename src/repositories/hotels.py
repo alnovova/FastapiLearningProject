@@ -30,11 +30,18 @@ class HotelsRepository(BaseRepository):
             .select_from(RoomsORM)
             .filter(RoomsORM.id.in_(rooms_ids_to_get))
         )
+
+        query = select(HotelsORM).filter(HotelsORM.id.in_(hotels_ids_to_get))
         if title:
-            hotels_ids_to_get = hotels_ids_to_get.filter(HotelsORM.title.ilike(f"%{title}%"))
+            query = query.filter(HotelsORM.title.ilike(f"%{title}%"))
         if location:
-            hotels_ids_to_get = hotels_ids_to_get.filter(HotelsORM.location.ilike(f"%{location}%"))
+            query = query.filter(HotelsORM.location.ilike(f"%{location}%"))
 
-        hotels_ids_to_get = hotels_ids_to_get.limit(limit).offset(offset)
+        query = (
+            query
+            .limit(limit)
+            .offset(offset)
+        )
 
-        return await self.get_filtered(HotelsORM.id.in_(hotels_ids_to_get))
+        result = await self.session.execute(query)
+        return [Hotel.model_validate(hotel, from_attributes=True) for hotel in result.scalars().all()]
