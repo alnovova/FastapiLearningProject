@@ -1,9 +1,13 @@
-from src.models.facilities import FacilitiesORM
+from src.models.facilities import FacilitiesORM, RoomsFacilitiesORM
 from src.repositories.base import BaseRepository
-from src.schemas.facilities import Facilities
+from src.schemas.facilities import Facility, RoomFacility
 
 
 class FacilitiesRepository(BaseRepository):
-
     model = FacilitiesORM
-    schema = Facilities
+    schema = Facility
+
+
+class RoomsFacilitiesRepository(BaseRepository):
+    model = RoomsFacilitiesORM
+    schema = RoomFacility
