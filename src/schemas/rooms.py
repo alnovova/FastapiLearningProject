@@ -6,7 +6,7 @@ class RoomAddRequest(BaseModel):
     description: str | None = None
     price: int
     quantity: int
-    facilities_ids: list[int] | None = None
+    facilities_ids: list[int] = []
 
 
 class RoomAdd(BaseModel):
@@ -28,9 +28,14 @@ class RoomPatchRequest(BaseModel):
     description: str | None = None
     price: int | None = None
     quantity: int | None = None
+    facilities_ids: list[int] | None = None
 
 
-class RoomPatch(RoomPatchRequest):
+class RoomPatch(BaseModel):
+    title: str | None = None
+    description: str | None = None
+    price: int | None = None
+    quantity: int | None = None
     hotel_id: int
 
     model_config = ConfigDict(from_attributes=True)

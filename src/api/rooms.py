@@ -1,10 +1,8 @@
 from datetime import date
 
 from fastapi import APIRouter, Query, HTTPException
-from sqlalchemy import not_
 
 from src.api.dependencies import DBDep
-from src.models.facilities import RoomsFacilitiesORM
 from src.schemas.facilities import RoomFacilityAdd
 from src.schemas.rooms import RoomAdd, RoomAddRequest, RoomPatchRequest, RoomPatch
 
@@ -53,16 +51,7 @@ async def edit_room(
         raise HTTPException(404, "Номер не найден")
     room_data_full = RoomAdd(**room_data.model_dump(), hotel_id=hotel_id)
     await db.rooms.edit(data=room_data_full, hotel_id=hotel_id, id=room_id)
-
-    current_room_facilities = await db.rooms_facilities.get_filtered(room_id=room_id)
-    current_room_facilities_ids = [room_facility.facility_id for room_facility in current_room_facilities]
-    facilities_to_add = set(room_data.facilities_ids) - set(current_room_facilities_ids)
-    if facilities_to_add:
-        rooms_facilities_data = [RoomFacilityAdd(room_id=room_id, facility_id=f_id) for f_id in facilities_to_add]
-        await db.rooms_facilities.add_bulk(rooms_facilities_data)
-
-    await db.rooms_facilities.delete(RoomsFacilitiesORM.room_id == room_id, not_(RoomsFacilitiesORM.facility_id.in_(room_data.facilities_ids)))
-
+    await db.rooms_facilities.set_room_facilities(room_id=room_id, facilities_ids=room_data.facilities_ids)
     await db.commit()
     return {"status": "OK", "data": room}
 
@@ -74,8 +63,11 @@ async def partially_edit_room(
         room_data: RoomPatchRequest,
         db: DBDep
 ):
-    room_data_full = RoomPatch(**room_data.model_dump(exclude_unset=True), hotel_id=hotel_id)
+    room_data_dict = room_data.model_dump(exclude_unset=True)
+    room_data_full = RoomPatch(**room_data_dict, hotel_id=hotel_id)
     await db.rooms.edit(data=room_data_full, exclude_unset=True, hotel_id=hotel_id, id=room_id)
+    if "facilities_ids" in room_data_dict:
+        await db.rooms_facilities.set_room_facilities(room_id=room_id, facilities_ids=room_data_dict["facilities_ids"])
     await db.commit()
     return {"status": "OK"}
 

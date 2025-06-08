@@ -51,10 +51,7 @@ class BaseRepository:
         stmt = update(self.model).filter_by(**filter_by).values(**data.model_dump(exclude_unset=exclude_unset))
         await self.session.execute(stmt)
 
-    async def delete(self, *where, **filter_by) -> None:
-        stmt = delete(self.model)
-        if where:
-            stmt = stmt.where(*where)
-        if filter_by:
-            stmt = stmt.where(*(getattr(self.model, k) == v for k, v in filter_by.items()))
+
+    async def delete(self, **filter_by) -> None:
+        stmt = delete(self.model).filter_by(**filter_by)
         await self.session.execute(stmt)
