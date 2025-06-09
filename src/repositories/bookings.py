@@ -4,12 +4,13 @@ from sqlalchemy import select, and_
 
 from src.models.bookings import BookingsORM
 from src.repositories.base import BaseRepository
+from src.repositories.mappers.mappers import BookingDataMapper
 from src.schemas.bookings import Booking
 
 
 class BookingsRepository(BaseRepository):
     model = BookingsORM
-    schema = Booking
+    mapper = BookingDataMapper
 
     async def get_overlapping(self, room_id: int, date_from: date, date_to: date) -> list[Booking]:
         query = select(self.model).where(
@@ -20,4 +21,4 @@ class BookingsRepository(BaseRepository):
             )
         )
         result = await self.session.execute(query)
-        return [self.schema.model_validate(model) for model in result.scalars().all()]
+        return [self.mapper.map_to_domain_entity(model) for model in result.scalars().all()]
