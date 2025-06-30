@@ -1,15 +1,16 @@
 from fastapi import APIRouter
+from fastapi_cache.decorator import cache
 
-from src.api.dependencies import DBDep, UserIdDep, PaginationDep
+from src.api.dependencies import DBDep, UserIdDep
 from src.schemas.facilities import FacilityAdd
 
 router = APIRouter(prefix="/facilities", tags=["Удобства"])
 
 
 @router.get("", summary="Получение удобств")
-async def get_facilities(pagination: PaginationDep, db: DBDep):
-    per_page = pagination.per_page or 10
-    return await db.facilities.get_all(offset=per_page * (pagination.page - 1))
+@cache(expire=10)
+async def get_facilities(db: DBDep):
+    return await db.facilities.get_all()
 
 
 @router.post("", summary="Добавление удобства")
