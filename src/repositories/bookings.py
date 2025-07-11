@@ -22,3 +22,11 @@ class BookingsRepository(BaseRepository):
         )
         result = await self.session.execute(query)
         return [self.mapper.map_to_domain_entity(model) for model in result.scalars().all()]
+
+    async def get_bookings_with_today_checkin(self):
+        query = (
+            select(BookingsORM)
+            .filter(BookingsORM.date_from == date.today())
+        )
+        res = await self.session.execute(query)
+        return [self.mapper.map_to_domain_entity(booking) for booking in res.scalars().all()]
