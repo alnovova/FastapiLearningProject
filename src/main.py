@@ -1,3 +1,4 @@
+import asyncio
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
@@ -18,11 +19,25 @@ from src.api.rooms import router as router_rooms
 from src.api.bookings import router as router_bookings
 from src.api.facilities import router as router_facilities
 from src.api.images import router as router_images
+from src.api.dependencies import get_db
+
+
+async def send_emails_bookings_today_checkin():
+    async for db in get_db():
+        bookings = await db.bookings.get_bookings_with_today_checkin()
+        print(f"{bookings=}")
+
+
+async def run_send_emails_regularly():
+    while True:
+        await asyncio.sleep(5)
+        await send_emails_bookings_today_checkin()
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # При старте приложения
+    asyncio.create_task(run_send_emails_regularly())
     await redis_connector.connect()
     FastAPICache.init(RedisBackend(redis_connector.redis), prefix="fastapi-cache")
     yield

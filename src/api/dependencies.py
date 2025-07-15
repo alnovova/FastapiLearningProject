@@ -1,6 +1,5 @@
 from typing import Annotated
 from fastapi import Depends, Query, HTTPException, Request
-from jwt import ExpiredSignatureError
 from pydantic import BaseModel
 
 from src.database import async_session_maker
