@@ -6,14 +6,30 @@ from httpx import AsyncClient, ASGITransport
 from sqlalchemy import insert
 
 from src.config import settings
-from src.database import Base, engine_null_pool
+from src.database import Base, engine_null_pool, async_session_maker_null_pool
 from src.main import app
 from src.models import *
+from src.schemas.hotels import HotelAdd
+from src.schemas.rooms import RoomAdd
+from src.utils.db_manager import DBManager
 
 
 @pytest.fixture(scope="session", autouse=True)
 def check_test_mode():
     assert settings.MODE == "TEST"
+
+
+@pytest.fixture()
+async def db(check_test_mode):
+    async with DBManager(session_factory=async_session_maker_null_pool) as db:
+        yield db
+
+
+@pytest.fixture(scope="session")
+async def ac(check_test_mode):
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="https://api.example.com") as ac:
+        yield ac
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -34,13 +50,11 @@ async def setup_database(check_test_mode):
 
 
 @pytest.fixture(scope="session", autouse=True)
-async def register_user(setup_database):
-    transport = ASGITransport(app=app)
-    async with AsyncClient(transport=transport, base_url="https://api.example.com/v1") as ac:
-        await ac.post(
-            "/auth/register",
-            json={
-                "email": "test@test.ru",
-                "password": "1234"
-            }
-        )
+async def register_user(ac, setup_database):
+    response = await ac.post(
+        "/auth/register",
+        json={
+            "email": "test@test.ru",
+            "password": "1234"
+        }
+    )
