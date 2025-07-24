@@ -10,8 +10,6 @@ from src.config import settings
 from src.database import Base, engine_null_pool, async_session_maker_null_pool
 from src.main import app
 from src.models import *
-from src.schemas.hotels import HotelAdd
-from src.schemas.rooms import RoomAdd
 from src.utils.db_manager import DBManager
 
 
@@ -50,18 +48,31 @@ async def setup_database(check_test_mode):
         tests_dir = Path(__file__).parent
         hotels_path = tests_dir / "mock_hotels.json"
         rooms_path = tests_dir / "mock_rooms.json"
+        facilities_path = tests_dir / "mock_facilities.json"
 
         hotels_data = json.loads(hotels_path.read_text(encoding="utf-8"))
         rooms_data = json.loads(rooms_path.read_text(encoding="utf-8"))
+        facilities_data = json.loads(facilities_path.read_text(encoding="utf-8"))
 
         await conn.execute(insert(HotelsORM), hotels_data)
         await conn.execute(insert(RoomsORM), rooms_data)
+        await conn.execute(insert(FacilitiesORM), facilities_data)
 
 
 @pytest.fixture(scope="session", autouse=True)
 async def register_user(ac, setup_database):
     response = await ac.post(
         "/auth/register",
+        json={
+            "email": "test@test.ru",
+            "password": "1234"
+        }
+    )
+
+@pytest.fixture(scope="session", autouse=True)
+async def login_user(ac, register_user):
+    response = await ac.post(
+        "/auth/login",
         json={
             "email": "test@test.ru",
             "password": "1234"
