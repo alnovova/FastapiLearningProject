@@ -74,7 +74,7 @@ async def register_user(ac, setup_database):
 
 
 @pytest.fixture(scope="session", autouse=True)
-async def login_user(ac, register_user):
+async def authenticated_ac(ac, register_user):
     response = await ac.post(
         "/auth/login",
         json={
@@ -82,3 +82,9 @@ async def login_user(ac, register_user):
             "password": "1234"
         }
     )
+    assert response.status_code == 200
+    cookies = response.cookies
+    token = cookies.get("access_token")
+    assert token
+
+    yield ac
