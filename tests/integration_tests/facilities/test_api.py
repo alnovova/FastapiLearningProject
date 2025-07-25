@@ -12,5 +12,6 @@ async def test_create_facility(authenticated_ac):
     assert response.status_code == 200
     result = response.json()
     assert isinstance(result, dict)
+    assert result["status"] == "OK"
     assert "data" in result
     assert result["data"]["title"] == title
