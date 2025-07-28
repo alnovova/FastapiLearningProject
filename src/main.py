@@ -9,9 +9,7 @@ from pathlib import Path
 
 from fastapi_cache import FastAPICache
 from fastapi_cache.backends.redis import RedisBackend
-from fastapi_cache.backends.inmemory import InMemoryBackend
 
-from src.config import settings
 
 sys.path.append(str(Path(__file__).parent.parent))
 
@@ -28,7 +26,7 @@ from src.api.dependencies import get_db
 async def send_emails_bookings_today_checkin():
     async for db in get_db():
         bookings = await db.bookings.get_bookings_with_today_checkin()
-        print(f"{bookings=}")
+        # print(f"{bookings=}")
 
 
 async def run_send_emails_regularly():
