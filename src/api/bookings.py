@@ -19,6 +19,10 @@ async def get_user_bookings(user_id: UserIdDep, db: DBDep):
 
 @router.post("", summary="Создание бронирования")
 async def create_booking(user_id: UserIdDep, booking_data: BookingAddRequest, db: DBDep):
-    booking = await db.bookings.add_booking(booking_data, user_id=user_id)
+    room = await db.rooms.get_one_or_none(id=booking_data.room_id)
+    if not room:
+        raise HTTPException(status_code=404, detail="Номера с таким id не существует")
+
+    booking = await db.bookings.add_booking(booking_data, hotel_id=room.hotel_id, user_id=user_id)
     await db.commit()
     return {"status": "OK", "data": booking}

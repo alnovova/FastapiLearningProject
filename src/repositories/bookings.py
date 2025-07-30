@@ -25,12 +25,16 @@ class BookingsRepository(BaseRepository):
         res = await self.session.execute(query)
         return [self.mapper.map_to_domain_entity(booking) for booking in res.scalars().all()]
 
-    async def add_booking(self, data: BaseModel, user_id: int):
+    async def add_booking(self, data: BookingAdd, hotel_id: int, user_id: int):
         room = await RoomsRepository(self.session).get_one_or_none(id=data.room_id)
         if not room:
             raise HTTPException(status_code=404, detail="Номера с таким id не существует")
 
-        vacant_rooms_ids_subquery = rooms_ids_for_booking(date_from=data.date_from, date_to=data.date_to)
+        vacant_rooms_ids_subquery = rooms_ids_for_booking(
+            date_from=data.date_from,
+            date_to=data.date_to,
+            hotel_id=hotel_id
+        )
         query = (
             select(RoomsORM)
             .filter(RoomsORM.id == data.room_id)
@@ -38,10 +42,9 @@ class BookingsRepository(BaseRepository):
         )
 
         result = await self.session.execute(query)
-        room = result.scalars().one_or_none()
-        if not room:
+        vacant_room = result.scalars().one_or_none()
+        if not vacant_room:
             raise HTTPException(status_code=400, detail="Номер не доступен на выбранные даты")
-        room = RoomDataMapper.map_to_domain_entity(room)
 
         booking_data_full = BookingAdd(**data.model_dump(), user_id=user_id, price=room.price)
         return await BookingsRepository(self.session).add(booking_data_full)
