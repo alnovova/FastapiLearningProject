@@ -26,7 +26,7 @@ async def get_db_null_pool():
         yield db
 
 
-@pytest.fixture()
+@pytest.fixture(scope="session")
 async def db(check_test_mode):
     async for db in get_db_null_pool():
         yield db
