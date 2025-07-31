@@ -1,5 +1,8 @@
 import pytest
 
+from src.database import async_session_maker
+from tests.conftest import get_db_null_pool
+
 
 @pytest.mark.parametrize("room_id, date_from, date_to, status_code", [
     (1, "2024-08-01", "2024-08-10", 200),
@@ -28,9 +31,10 @@ async def test_add_booking(room_id, date_from, date_to, status_code, authenticat
 
 
 @pytest.fixture(scope="module")
-async def delete_all_bookings(db):
-    await db.bookings.delete()
-    await db.commit()
+async def delete_all_bookings():
+    async for _db in get_db_null_pool():
+        await _db.bookings.delete()
+        await _db.commit()
 
 
 @pytest.mark.parametrize("room_id, date_from, date_to, expected_count", [
@@ -39,7 +43,7 @@ async def delete_all_bookings(db):
     (1, "2024-08-01", "2024-08-10", 3),
 ])
 async def test_add_and_get_my_bookings(room_id, date_from, date_to, expected_count, authenticated_ac, delete_all_bookings):
-    await authenticated_ac.post(
+    response_add_bookings = await authenticated_ac.post(
         "/bookings",
         json={
             "room_id": room_id,
@@ -47,8 +51,11 @@ async def test_add_and_get_my_bookings(room_id, date_from, date_to, expected_cou
             "date_to": date_to,
         }
     )
-    response = await authenticated_ac.get("/bookings/me")
-    data = response.json()
-    assert isinstance(data, list)
-    assert len(data) == expected_count
+    assert response_add_bookings.status_code == 200
+
+    response_get_my_bookings = await authenticated_ac.get("/bookings/me")
+    assert response_get_my_bookings.status_code == 200
+    my_bookings = response_get_my_bookings.json()
+    assert isinstance(my_bookings, list)
+    assert len(my_bookings) == expected_count
 
