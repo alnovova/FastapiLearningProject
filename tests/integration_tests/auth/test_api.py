@@ -49,4 +49,4 @@ async def test_login_logout(email: str, password: str, login_status_code: int, a
 
         response_logout = await ac.post("/auth/logout")
         assert response_logout.status_code == 200
-        assert not "access_token" in ac.cookies
+        assert "access_token" not in ac.cookies

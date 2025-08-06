@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException
 
 from src.api.dependencies import DBDep, UserIdDep, PaginationDep
-from src.schemas.bookings import BookingAddRequest, BookingAdd
+from src.schemas.bookings import BookingAddRequest
 
 router = APIRouter(prefix="/bookings", tags=["Бронирования"])
 
