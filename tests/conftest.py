@@ -1,5 +1,6 @@
 # ruff: noqa: E402, F405
 import json
+from typing import AsyncGenerator
 from unittest import mock
 from pathlib import Path
 
@@ -37,7 +38,7 @@ app.dependency_overrides[get_db] = get_db_null_pool
 
 
 @pytest.fixture(scope="session")
-async def ac(check_test_mode):
+async def ac(check_test_mode) -> AsyncGenerator[AsyncClient]:
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="https://api.example.com") as ac:
         yield ac
