@@ -10,10 +10,7 @@ def rooms_ids_for_booking(date_from: date, date_to: date, hotel_id: int | None =
     rooms_count = (
         select(BookingsORM.room_id, func.count("*").label("rooms_booked"))
         .select_from(BookingsORM)
-        .filter(
-            BookingsORM.date_from <= date_to,
-            BookingsORM.date_to >= date_from
-        )
+        .filter(BookingsORM.date_from <= date_to, BookingsORM.date_to >= date_from)
         .group_by(BookingsORM.room_id)
         .cte(name="rooms_count")
     )
@@ -28,24 +25,17 @@ def rooms_ids_for_booking(date_from: date, date_to: date, hotel_id: int | None =
         .cte(name="rooms_left_table")
     )
 
-    rooms_ids_for_hotel = (
-        select(RoomsORM.id)
-        .select_from(RoomsORM)
-    )
+    rooms_ids_for_hotel = select(RoomsORM.id).select_from(RoomsORM)
     if hotel_id is not None:
         rooms_ids_for_hotel = rooms_ids_for_hotel.filter_by(hotel_id=hotel_id)
-    rooms_ids_for_hotel = (
-        rooms_ids_for_hotel
-        .subquery(name="rooms_ids_for_hotel")
-    )
-
+    rooms_ids_for_hotel = rooms_ids_for_hotel.subquery(name="rooms_ids_for_hotel")
 
     rooms_ids_to_get = (
         select(rooms_left_table.c.room_id)
         .select_from(rooms_left_table)
         .filter(
             rooms_left_table.c.rooms_left > 0,
-            rooms_left_table.c.room_id.in_(select(rooms_ids_for_hotel.c.id))
+            rooms_left_table.c.room_id.in_(select(rooms_ids_for_hotel.c.id)),
         )
     )
 

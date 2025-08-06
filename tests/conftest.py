@@ -13,7 +13,7 @@ from src.api.dependencies import get_db
 from src.config import settings
 from src.database import Base, engine_null_pool, async_session_maker_null_pool
 from src.main import app
-from src.models import * #noqa: F403
+from src.models import *  # noqa: F403
 from src.utils.db_manager import DBManager
 
 
@@ -65,23 +65,11 @@ async def setup_database(check_test_mode):
 
 @pytest.fixture(scope="session", autouse=True)
 async def register_user(ac, setup_database):
-    await ac.post(
-        "/auth/register",
-        json={
-            "email": "test@test.ru",
-            "password": "1234"
-        }
-    )
+    await ac.post("/auth/register", json={"email": "test@test.ru", "password": "1234"})
 
 
 @pytest.fixture(scope="session")
 async def authenticated_ac(ac, register_user):
-    await ac.post(
-        "/auth/login",
-        json={
-            "email": "test@test.ru",
-            "password": "1234"
-        }
-    )
+    await ac.post("/auth/login", json={"email": "test@test.ru", "password": "1234"})
     assert ac.cookies["access_token"]
     yield ac

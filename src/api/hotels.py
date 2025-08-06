@@ -12,12 +12,12 @@ router = APIRouter(prefix="/hotels", tags=["Отели"])
 @router.get("", summary="Получение отелей")
 @cache(expire=10)
 async def get_hotels(
-        pagination: PaginationDep,
-        db: DBDep,
-        date_from: date = Query(examples=["2025-05-30"]),
-        date_to: date = Query(examples=["2025-06-12"]),
-        title: str | None = Query(None, description="Название отеля"),
-        location: str | None = Query(None, description="Адрес")
+    pagination: PaginationDep,
+    db: DBDep,
+    date_from: date = Query(examples=["2025-05-30"]),
+    date_to: date = Query(examples=["2025-06-12"]),
+    title: str | None = Query(None, description="Название отеля"),
+    location: str | None = Query(None, description="Адрес"),
 ):
     per_page = pagination.per_page or 5
     return await db.hotels.get_filtered_by_time(
@@ -26,7 +26,7 @@ async def get_hotels(
         date_from=date_from,
         date_to=date_to,
         title=title,
-        location=location
+        location=location,
     )
 
 
@@ -37,17 +37,25 @@ async def get_hotel(hotel_id: int, db: DBDep):
 
 @router.post("", summary="Добавление отеля")
 async def create_hotel(
-        db: DBDep,
-        hotel_data: HotelAdd = Body(openapi_examples={
-            "1": {"summary": "Сочи", "value": {
-                "title": "Отель 5 звезд у моря",
-                "location": "sochi",
-            }},
-            "2": {"summary": "Дубай", "value": {
-                "title": "Отель",
-                "location": "dubai",
-            }}
-        }),
+    db: DBDep,
+    hotel_data: HotelAdd = Body(
+        openapi_examples={
+            "1": {
+                "summary": "Сочи",
+                "value": {
+                    "title": "Отель 5 звезд у моря",
+                    "location": "sochi",
+                },
+            },
+            "2": {
+                "summary": "Дубай",
+                "value": {
+                    "title": "Отель",
+                    "location": "dubai",
+                },
+            },
+        }
+    ),
 ):
     hotel = await db.hotels.add(hotel_data)
     await db.commit()

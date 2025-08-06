@@ -6,7 +6,6 @@ from src.repositories.bookings import BookingsRepository
 
 
 class DBManager:
-
     def __init__(self, session_factory):
         self.session_factory = session_factory
 

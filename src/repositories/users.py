@@ -8,7 +8,6 @@ from src.schemas.users import UserWithHashedPassword
 
 
 class UsersRepository(BaseRepository):
-
     model = UsersORM
     mapper = UserDataMapper
 
