@@ -11,3 +11,6 @@ class ObjectNotFoundException(NabronirovalException):
 
 class AllRoomsAreBookedException(NabronirovalException):
     detail = "Не осталось свободных номеров"
+
+class WrongDateOrderException(NabronirovalException):
+    detail = "Дата выезда раньше даты заезда"

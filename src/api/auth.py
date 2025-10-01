@@ -14,10 +14,10 @@ async def register_user(data: UserRequestAdd, db: DBDep):
     new_user_data = UserAdd(email=data.email, hashed_password=hashed_password)
     try:
         await db.users.add(new_user_data)
-        await db.commit()
-        return {"status": "OK"}
     except IntegrityError:
-        raise HTTPException(status_code=422, detail="Email уже зарегистрирован")
+        raise HTTPException(status_code=409, detail="Email уже зарегистрирован")
+    await db.commit()
+    return {"status": "OK"}
 
 
 @router.post("/login")
